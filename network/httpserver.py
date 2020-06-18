@@ -31,22 +31,62 @@ def get_free_ips(ipRange):
     return ips
 
 def netdiscover_overview(ipRange):
+    # wget -O - 127.0.0.1:2222/overview?range=10.17.76.0/24
     conn=open_db(DBPATH)
     result=[]
     if (conn):
         cur=conn.cursor()
-        cur.execute(f"select ip,status,lastonline,mac from 'range{ipRange}' order by lastonline")
+        cur.execute(f"select ip,status,lastonline,range.mac,m1.domain,"
+                    f"range.dup1,m2.domain,range.dup2,m3.domain "
+                    f"from 'range{ipRange}' as range "
+                    f"left join macDomainMap as m1 on range.mac = m1.mac " 
+                    f"left join macDomainMap as m2 on (range.dup1 = m2.mac) "
+                    f"left join macDomainMap as m3 on (range.dup2 = m3.mac)")
 
         rows=cur.fetchall()
         for row in rows:
-            # ip - status - lastseen
-            next_ip = {"ip":row[0], "status":row[1], "lastOnline":row[2], "mac":row[3]}
+            mac=row[3]
+            domainname=row[4]
+            dup1=row[5]
+            if dup1 and dup1 != "na":
+                mac += f" {dup1}"
+                domainname += f" {row[6]}"
+                dup2=row[7]
+                if dup2 and dup2 != "na":
+                    mac += f" {dup2}"
+                    domainname += f" {row[8]}"
+
+            next_ip = {"ip":row[0], "status":row[1], "lastOnline":row[2], "mac":mac, "domainname":domainname}
             result.append(next_ip)
 
     return json.dumps(result )
 
+def addMacDomainMapping(mac, domain):
+    # curl --data '{"mac":"52:54:00:c1:58:6b", "domain":"kurtsMasterDomain"}' localhost:3141
+    conn=open_db(DBPATH)
+    if conn:
+        c = conn.cursor()
+        cmd=f'insert or replace into macDomainMap values ("{mac}", "{domain}")'
+        print(cmd)
+        c.execute(cmd)
+        conn.commit()
+
 
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_POST(self):
+        #self._set_headers()
+        print("in post method")
+        self.data_string = self.rfile.read(int(self.headers['Content-Length']))
+        self.send_response(200)
+        self.end_headers()
+        data = json.loads(self.data_string)
+        
+        mac=data["mac"]
+        domain=data["domain"]
+        addMacDomainMapping(mac, domain)
+
+        return
+
     def do_GET(self):
         response=""
         print(self.path)
