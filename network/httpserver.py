@@ -47,6 +47,8 @@ def netdiscover_overview(ipRange):
         for row in rows:
             mac=row[3]
             domainname=row[4]
+            if not domainname:
+                domainname = ""
             dup1=row[5]
             if dup1 and dup1 != "na":
                 mac += f" {dup1}"
