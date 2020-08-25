@@ -1,0 +1,17 @@
+[Unit]
+Description=KVMdeploy
+After=network.target
+
+[Service]
+User=leo
+WorkingDirectory=/home/leo/kvm3mui
+Environment=FLASK_APP=kvm3mui
+Environment=FLASK_ENV=development
+Environment=LC_ALL=C.UTF-8
+Environment=LANG=C.UTF-8
+#Environment=PATH=/home/leo/.local/bin:/home/leo/bin:/home/leo/.local/bin:/home/leo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/bash -c 'PATH=/home/leo/.local/bin:$PATH exec /home/leo/kvm3mui/run.sh'
+
+[Install]
+WantedBy=multi-user.target
+
