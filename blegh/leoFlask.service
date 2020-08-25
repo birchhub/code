@@ -1,0 +1,13 @@
+[Unit]
+Description=Blegh Http Server, flask
+After=network.target
+
+[Service]
+User=leo
+WorkingDirectory=/home/leo/helper/blegh
+Environment=FLASK_APP=blegh.py
+ExecStart=/home/leo/.local/bin/flask run --host=0.0.0.0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
