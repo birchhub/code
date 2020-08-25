@@ -74,8 +74,6 @@ def netdiscover_overview(ipRange):
 
 def addMacDomainMapping(mac, domain):
     # curl --data '{"mac":"52:54:00:c1:58:6b", "domain":"kurtsMasterDomain"}' localhost:3141
-    print(f"mac: {mac} - domain: {domain}")
-    return
     conn=open_db(DBPATH)
     if conn:
         c = conn.cursor()
